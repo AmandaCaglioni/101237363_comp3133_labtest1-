@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        body {
+            overflow: hidden;
+        }
+
+        .top {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            background-color: beige;
+        }
+
+        .top>div {
+            width: 50%;
+        }
+
+        .second-div {
+            padding: 2%;
+            display: flex;
+            flex-direction: row-reverse;
+        }
+
+        .first-div {
+            padding: 2%;
+        }
+
+
+        .parent {
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* .parent>div {
+            height: 100vh;
+        } */
+
+        .left-plane {
+            width: 30%;
+            background-color: beige;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .left-plane>div {
+            padding-left: 3%;
+        }
+
+        .right-pane {
+            padding: 3%;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow-y: scroll;
+            height: 690px;
+        }
+
+        .right-pane>div {
+            width: 100%;
+            background-color: darkgray;
+            margin-top: 1%;
+            padding: 2%;
+        }
+
+        .send-message {
+            position: fixed;
+            bottom: 0%;
+            width: 100%;
+            background-color: lightblue;
+            padding: 2%;
+        }
+
+        .inner-class {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .first-div {
+            width: 85%;
+            /* border: 2px solid black; */
+        }
+
+        .second-div {
+            width: 20%;
+            /* border: 2px solid black; */
+        }
+    </style>
+</head>
+
+<body onload="get_data()">
+    <div class="top">
+        <div class="first-div">
+            <h1>Chat App</h1>
+        </div>
+        <div class="second-div">
+            <button type="button" class="btn btn-outline-secondary">Leave Room</button>
+        </div>
+    </div>
+    <div class="parent">
+        <div class="left-plane">
+            <div>
+                <h4>Room Name : Nodejs</h4>
+            </div>
+            <div class="second-second-div">
+                <h4>Members : </h4>
+                <h6>Kaliis</h6>
+                <h6>nade</h6>
+            </div>
+        </div>
+        <div class="right-pane" id="right-pane">
+        </div>
+    </div>
+    <div class="send-message">
+        <div class="inner-class">
+            <div class="first-div">
+
+                <input type="name" class="form-control" id="message" placeholder="Type your message here ....."
+                    style="width: 100%;">
+            </div>
+            <div class="second-div">
+                <button type="button" class="btn btn-light" style="width: 100%;" onclick="send_message()">Send
+                    message</button>
+            </div>
+
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        async function get_data() {
+            let response = await fetch(`http://localhost:3000/message`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+
+                },
+            });
+            if (response.status == 200) {
+                response = await response.json();
+                console.log("api called", response)
+                for (let i = 0; i < response.length; i++) {
+                    div = document.createElement("div");
+                    div.innerHTML = response[i].message;
+                    document.getElementById("right-pane").appendChild(div);
+                }
+                var message = document.getElementById("message").value
+
+            }
+        }
+        let socket;
+        socket = io();
+
+        socket.on('newconnection', (message) => {
+            console.log(message);
+            div = document.createElement("div");
+            div.innerHTML = message;
+            document.getElementById("right-pane").appendChild(div);
+
+        })
+
+        socket.on("disconnect", (message) => {
+            console.log(message);
+            div = document.createElement("div");
+            div.innerHTML = message;
+            document.getElementById("right-pane").appendChild(div);
+        })
+
+        socket.on('message', (message) => {
+            console.log(message);
+        })
+
+        async function send_message() {
+            socket.emit('newmessage', document.getElementById("message").value);
+            var message = document.getElementById("message").value
+            div = document.createElement("div");
+            div.innerHTML = document.getElementById("message").value;
+            document.getElementById("right-pane").appendChild(div);
+            document.getElementById("message").value = "";
+
+            let response = await fetch(`http://localhost:3000/message`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+
+                },
+                body: JSON.stringify({
+                    "room": "Nodejs",
+                    "message": message,
+                })
+            });
+            if (response.status == 200) {
+                response = await response.json();
+                console.log("api called")
+            }
+
+
+        }
+    </script>
+</body>
+
+</html>
